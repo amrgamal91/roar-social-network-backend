@@ -5,8 +5,8 @@ const FBAuth = require("./util/fbAuth");
 const { getAllScreams, postOneScream } = require("./handlers/screams");
 const { signup, login } = require("./handlers/users");
 
-const firebase = require("firebase");
-firebase.initializeApp(config);
+// const firebase = require("firebase");
+// firebase.initializeApp(config);
 
 //scream routes
 app.get("/screams", getAllScreams);
