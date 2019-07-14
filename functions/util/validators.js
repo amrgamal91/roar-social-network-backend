@@ -1,14 +1,17 @@
+//checks if the string is empty
 const isEmpty = string => {
   if (string.trim() === "") return true;
   else return false;
 };
 
+//check if the string matches the email pattern
 const isEmail = email => {
   const emailRegEx = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if (email.match(emailRegEx)) return true;
   else return false;
 };
 
+//validate all signup data
 exports.validateSignupData = data => {
   let errors = {};
   if (isEmpty(data.email)) {
@@ -24,6 +27,7 @@ exports.validateSignupData = data => {
   return { errors, valid: Object.keys(errors).length === 0 ? true : false };
 };
 
+// validates the login data
 exports.validateLoginData = data => {
   let errors = {};
   if (isEmpty(user.email)) errors.email = "Must not be empty ";

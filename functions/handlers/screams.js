@@ -1,4 +1,5 @@
 const { db } = require("../util/admin");
+
 exports.getAllScreams = (req, res) => {
   db.collection("screams")
     .orderBy("createdAt", "desc")

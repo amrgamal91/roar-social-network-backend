@@ -1,8 +1,12 @@
 const { db } = require("../util/admin");
-const config = require("../util/config");
+const { config } = require("../util/config");
+
 const firebase = require("firebase");
 firebase.initializeApp(config);
+
 const { validateSignupData, validateLoginData } = require("../util/validators");
+
+//signup method
 exports.signup = (req, res) => {
   const newUser = {
     email: req.body.email,
@@ -10,7 +14,7 @@ exports.signup = (req, res) => {
     confirmPassword: req.body.confirmPassword,
     handle: req.body.handle
   };
-  const { valid, errors } = validateSignupData(newUser);
+  const { errors, valid } = validateSignupData(newUser);
   if (!valid) return res.status(400).json(errors);
 
   //TODO:validate data
@@ -53,6 +57,7 @@ exports.signup = (req, res) => {
     });
 };
 
+//login method
 exports.login = (req, res) => {
   const user = {
     email: req.body.email,
