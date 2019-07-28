@@ -2,11 +2,11 @@
  * 
 To get the config object for a Firebase Web App:
 
-    Sign in to Firebase, then open your project.
-    Click the Settings icon, then select Project settings.
-    In the Your apps card, select the nickname of the app for which you need a config object.
-    Select Config from the Firebase SDK snippet pane.
-    Copy the config object snippet, then add it to your app's HTML.
+    1- Sign in to Firebase, then open your project.
+    2- Click the Settings icon, then select Project settings.
+    3- In the Your apps card, select the nickname of the app for which you need a config object.
+    4- Select Config from the Firebase SDK snippet pane.
+    5- Copy the config object snippet, then add it to your app's HTML.
 
  */
 
