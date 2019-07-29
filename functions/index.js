@@ -4,18 +4,23 @@ const app = require("express")();
 const FBAuth = require("./util/fbAuth");
 const { db } = require("./util/admin");
 
+/**
+ * package for providing a Connect/Express middleware
+ * that can be used to enable CORS with various options
+ */
 const cors = require("cors");
 app.use(cors());
 
 const {
-  getAllScreams,
-  postOneScream,
-  getScream,
-  commentOnScream,
-  unlikeScream,
-  likeScream,
-  deleteScream
-} = require("./handlers/screams");
+  getAllRoars,
+  postOneRoar,
+  getRoar,
+  commentOnRoar,
+  unlikeRoar,
+  likeRoar,
+  deleteRoar
+} = require("./handlers/roars");
+
 const {
   signup,
   login,
@@ -26,14 +31,14 @@ const {
   markNotificationsRead
 } = require("./handlers/users");
 
-//scream routes
-app.get("/screams", getAllScreams);
-app.post("/scream", FBAuth, postOneScream);
-app.get("/scream/:screamId", getScream);
-app.delete("/scream/:screamId", FBAuth, deleteScream);
-app.get("/scream/:screamId/unlike", FBAuth, unlikeScream);
-app.get("/scream/:screamId/like", FBAuth, likeScream);
-app.post("/scream/:screamId/comment", FBAuth, commentOnScream);
+//roar routes
+app.get("/roars", getAllRoars);
+app.post("/roar", FBAuth, postOneRoar);
+app.get("/roar/:roarId", getRoar);
+app.delete("/roar/:roarId", FBAuth, deleteRoar);
+app.get("/roar/:roarId/unlike", FBAuth, unlikeRoar);
+app.get("/roar/:roarId/like", FBAuth, likeRoar);
+app.post("/roar/:roarId/comment", FBAuth, commentOnRoar);
 
 //users routes
 app.post("/signup", signup);
@@ -46,11 +51,12 @@ app.post("/notifications", FBAuth, markNotificationsRead);
 
 exports.api = functions.https.onRequest(app);
 
+//events
 exports.createNotificationOnLike = functions.firestore
   .document("likes/{id}")
   .onCreate(snapshot => {
     return db
-      .doc(`/screams/${snapshot.data().screamId}`)
+      .doc(`/roars/${snapshot.data().roarId}`)
       .get()
       .then(doc => {
         if (
@@ -63,7 +69,7 @@ exports.createNotificationOnLike = functions.firestore
             sender: snapshot.data().userHandle,
             type: "like",
             read: false,
-            screamId: doc.id
+            roarId: doc.id
           });
         }
       })
@@ -86,7 +92,7 @@ exports.createNotificationOnComment = functions.firestore
   .document("comments/{id}")
   .onCreate(snapshot => {
     return db
-      .doc(`/screams/${snapshot.data().screamId}`)
+      .doc(`/roars/${snapshot.data().roarId}`)
       .get()
       .then(doc => {
         if (
@@ -99,7 +105,7 @@ exports.createNotificationOnComment = functions.firestore
             sender: snapshot.data().userHandle,
             type: "comment",
             read: false,
-            screamId: doc.id
+            roarId: doc.id
           });
         }
       })
@@ -118,27 +124,35 @@ exports.onUserImageChange = functions.firestore
       console.log("image has changed");
       const batch = db.batch();
       return db
-        .collection("screams")
+        .collection("roars")
         .where("userHandle", "==", change.before.data().handle)
         .get()
         .then(data => {
           data.forEach(doc => {
-            const scream = db.doc(`/screams/${doc.id}`);
-            batch.update(scream, { userImage: change.after.data().imageUrl });
+            const roar = db.doc(`/roars/${doc.id}`);
+            batch.update(roar, { userImage: change.after.data().imageUrl });
           });
           return batch.commit();
         });
     } else return true;
   });
 
-exports.onScreamDelete = functions.firestore
-  .document("/screams/{screamId}")
+/**
+ * when delete roar :
+ * get all comments on this roar
+ * get all likes of this roar
+ * get all notifications of this roar
+ * gather all the above in one batch
+ * delete every record on the batch
+ */
+exports.onRoarDelete = functions.firestore
+  .document("/roars/{roarId}")
   .onDelete((snapshot, context) => {
-    const screamId = context.params.screamId;
+    const roarId = context.params.roarId;
     const batch = db.batch();
     return db
       .collection("comments")
-      .where("screamId", "==", screamId)
+      .where("roarId", "==", roarId)
       .get()
       .then(data => {
         data.forEach(doc => {
@@ -146,7 +160,7 @@ exports.onScreamDelete = functions.firestore
         });
         return db
           .collection("likes")
-          .where("screamId", "==", screamId)
+          .where("roarId", "==", roarId)
           .get();
       })
       .then(data => {
@@ -155,7 +169,7 @@ exports.onScreamDelete = functions.firestore
         });
         return db
           .collection("notifications")
-          .where("screamId", "==", screamId)
+          .where("roarId", "==", roarId)
           .get();
       })
       .then(data => {

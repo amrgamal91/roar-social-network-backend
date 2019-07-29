@@ -18,7 +18,8 @@ let db = {
       body: "this is the roar body ",
       createdAt: "2019-07-10T03:52:32.227Z",
       likeCount: 5,
-      commentCount: 2
+      commentCount: 2,
+      imageUrl: "http://image.url"
     }
   ],
   comments: [

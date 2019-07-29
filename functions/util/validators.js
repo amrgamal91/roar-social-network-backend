@@ -54,6 +54,7 @@ exports.validateLoginData = data => {
 /**
  * @param {data in the request} data
  * set the user details object to be inserted in db
+ * bio , website , location
  */
 exports.reduceUserDetails = data => {
   let userDetails = {};

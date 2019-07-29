@@ -10,7 +10,14 @@ const {
   reduceUserDetails
 } = require("../util/validators");
 
-//signup method
+/**
+ * 1- prepare newUser object from the request
+ * 2- validate user data & raise error if not valid
+ * 3- check if user exist , if not create a new one
+ * 4- add new record for user in users collection
+ * 5- return response with created status (201)
+ * 6- handle errors : emails exist , others
+ */
 exports.signup = (req, res) => {
   const newUser = {
     email: req.body.email,
@@ -24,6 +31,7 @@ exports.signup = (req, res) => {
 
   const blankImage = "blank-img.png";
   let userId, token;
+
   db.doc(`/users/${newUser.handle}`)
     .get()
     .then(doc => {
@@ -67,7 +75,13 @@ exports.signup = (req, res) => {
     });
 };
 
-//login method
+/**
+ * 1- get credentials from request body
+ * 2- validate credentials
+ * 3- SignIn with firebase authentication method
+ * 4- get the auth token & return it
+ * 5- handle errors
+ */
 exports.login = (req, res) => {
   const user = {
     email: req.body.email,
@@ -96,6 +110,9 @@ exports.login = (req, res) => {
     });
 };
 
+/**
+ * update user details (bio,web,location) in users collection
+ */
 exports.addUserDetails = (req, res) => {
   let userDetails = reduceUserDetails(req.body);
   db.doc(`/users/${req.user.handle}`)
@@ -109,7 +126,9 @@ exports.addUserDetails = (req, res) => {
     });
 };
 
-// Get any user's details
+/**
+ * get user's Roars from db
+ */
 exports.getUserDetails = (req, res) => {
   let userData = {};
   db.doc(`/users/${req.params.handle}`)
@@ -118,7 +137,7 @@ exports.getUserDetails = (req, res) => {
       if (doc.exists) {
         userData.user = doc.data();
         return db
-          .collection("screams")
+          .collection("roars")
           .where("userHandle", "==", req.params.handle)
           .orderBy("createdAt", "desc")
           .get();
@@ -127,16 +146,16 @@ exports.getUserDetails = (req, res) => {
       }
     })
     .then(data => {
-      userData.screams = [];
+      userData.roars = [];
       data.forEach(doc => {
-        userData.screams.push({
+        userData.roars.push({
           body: doc.data().body,
           createdAt: doc.data().createdAt,
           userHandle: doc.data().userHandle,
           userImage: doc.data().userImage,
           likeCount: doc.data().likeCount,
           commentCount: doc.data().commentCount,
-          screamId: doc.id
+          roarId: doc.id
         });
       });
       return res.json(userData);
@@ -146,7 +165,10 @@ exports.getUserDetails = (req, res) => {
       return res.status(500).json({ error: err.code });
     });
 };
-//get own user details
+
+/**
+ * get user's likes & notifications
+ */
 exports.getAuthenticatedUser = (req, res) => {
   let userData = {};
 
@@ -180,7 +202,7 @@ exports.getAuthenticatedUser = (req, res) => {
           recipient: doc.data().recipient,
           sender: doc.data().sender,
           createdAt: doc.data().createdAt,
-          screamId: doc.data().screamId,
+          roarId: doc.data().roarId,
           type: doc.data().type,
           read: doc.data().read,
           notificationId: doc.id
@@ -195,7 +217,8 @@ exports.getAuthenticatedUser = (req, res) => {
 };
 
 /**
- * npm install --save busboy  {package for uploading images}
+ * upload image using busboy library
+ * prerequisite : npm install --save busboy  {package for uploading images}
  */
 exports.uploadImage = (req, res) => {
   const BusBoy = require("busboy");
@@ -206,6 +229,7 @@ exports.uploadImage = (req, res) => {
   const busboy = new BusBoy({ headers: req.headers });
   let imageFileName;
   let imageToBeUploaded = {};
+
   busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
     console.log(fieldname);
     console.log(filename);
@@ -225,6 +249,7 @@ exports.uploadImage = (req, res) => {
     imageToBeUploaded = { filepath, mimetype };
     file.pipe(fs.createWriteStream(filepath));
   });
+
   busboy.on("finish", () => {
     admin
       .storage()
@@ -253,9 +278,13 @@ exports.uploadImage = (req, res) => {
         return res.status(500).json({ error: err.code });
       });
   });
+
   busboy.end(req.rawBody);
 };
 
+/**
+ * marks batch of notifications as read on db
+ */
 exports.markNotificationsRead = (req, res) => {
   let batch = db.batch();
   req.body.forEach(notificationId => {
