@@ -75,6 +75,55 @@ exports.signup = (req, res) => {
     });
 };
 
+exports.handleSocialUser = (req, res) => {
+  const newUser = {
+    email: req.body.email,
+    handle: req.body.handle,
+    uid: req.body.uid,
+    token: req.body.token
+  };
+
+  // const { valid, errors } = validateSignupData(newUser);
+  // if (!valid) return res.status(400).json(errors);
+
+  const blankImage = "blank-img.png";
+
+  db.doc(`/users/${newUser.email}`)
+    .get()
+    .then(doc => {
+      if (doc.exists) {
+        //get user data & redirect
+        // return res.status(400).json({ handle: "this handle is already taken" });
+        return res.json(`${newUser.token}`);
+      }
+    })
+    .then(() => {
+      const userCredentials = {
+        handle: newUser.handle,
+        email: newUser.email,
+        createdAt: new Date().toISOString(),
+        imageUrl: `https://firebasestorage.googleapis.com/v0/b/${
+          config.storageBucket
+        }/o/${blankImage}?alt=media`,
+        userId: newUser.uid
+      };
+      return db.doc(`/users/${newUser.handle}`).set(userCredentials);
+    })
+    .then(() => {
+      return res.status(201).json({ message: "user created successfully" });
+    })
+    .catch(err => {
+      console.error(err);
+      if (err.code === "auth/email-already-in-use") {
+        return res.status(400).json({ email: "Email is already in use " });
+      } else {
+        return res
+          .status(500)
+          .json({ general: "something went wrong  , Please try again " });
+      }
+    });
+};
+
 /**
  * 1- get credentials from request body
  * 2- validate credentials
@@ -171,7 +220,6 @@ exports.getUserDetails = (req, res) => {
  */
 exports.getAuthenticatedUser = (req, res) => {
   let userData = {};
-
   db.doc(`/users/${req.user.handle}`)
     .get()
     .then(doc => {
@@ -190,7 +238,7 @@ exports.getAuthenticatedUser = (req, res) => {
       });
       return db
         .collection("notifications")
-        .where("recepient", "==", req.user.handle)
+        .where("recipient", "==", req.user.handle)
         .orderBy("createdAt", "desc")
         .limit(10)
         .get();
@@ -202,7 +250,7 @@ exports.getAuthenticatedUser = (req, res) => {
           recipient: doc.data().recipient,
           sender: doc.data().sender,
           createdAt: doc.data().createdAt,
-          roarId: doc.data().roarId,
+          screamId: doc.data().screamId,
           type: doc.data().type,
           read: doc.data().read,
           notificationId: doc.id
@@ -215,7 +263,6 @@ exports.getAuthenticatedUser = (req, res) => {
       return res.status(500).json({ error: err.code });
     });
 };
-
 /**
  * upload image using busboy library
  * prerequisite : npm install --save busboy  {package for uploading images}

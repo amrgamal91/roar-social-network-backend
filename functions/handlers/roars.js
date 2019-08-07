@@ -67,13 +67,11 @@ exports.getRoar = (req, res) => {
       }
       roarData = doc.data();
       roarData.roarId = doc.id;
-      return (
-        db
-          .collection("comments")
-          // .orderBy("createdAt", "desc")
-          .where("roarId", "==", req.params.roarId)
-          .get()
-      );
+      return db
+        .collection("comments")
+        .orderBy("createdAt", "desc")
+        .where("roarId", "==", req.params.roarId)
+        .get();
     })
     .then(data => {
       roarData.comments = [];

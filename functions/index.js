@@ -23,6 +23,7 @@ const {
 
 const {
   signup,
+  handleSocialUser,
   login,
   uploadImage,
   addUserDetails,
@@ -42,6 +43,7 @@ app.post("/roar/:roarId/comment", FBAuth, commentOnRoar);
 
 //users routes
 app.post("/signup", signup);
+app.post("/handleSocialUser", handleSocialUser);
 app.post("/login", login);
 app.post("/user/image", FBAuth, uploadImage);
 app.post("/user", FBAuth, addUserDetails);
