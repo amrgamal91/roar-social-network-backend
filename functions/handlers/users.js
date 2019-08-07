@@ -80,7 +80,8 @@ exports.handleSocialUser = (req, res) => {
     email: req.body.email,
     handle: req.body.handle,
     uid: req.body.uid,
-    token: req.body.token
+    token: req.body.token,
+    imageUrl: req.body.imageUrl
   };
 
   // const { valid, errors } = validateSignupData(newUser);
@@ -102,9 +103,10 @@ exports.handleSocialUser = (req, res) => {
         handle: newUser.handle,
         email: newUser.email,
         createdAt: new Date().toISOString(),
-        imageUrl: `https://firebasestorage.googleapis.com/v0/b/${
-          config.storageBucket
-        }/o/${blankImage}?alt=media`,
+        // imageUrl: `https://firebasestorage.googleapis.com/v0/b/${
+        //   config.storageBucket
+        // }/o/${blankImage}?alt=media`,
+        imageUrl: newUser.imageUrl,
         userId: newUser.uid
       };
       return db.doc(`/users/${newUser.handle}`).set(userCredentials);
