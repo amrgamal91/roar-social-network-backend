@@ -89,41 +89,73 @@ exports.handleSocialUser = (req, res) => {
 
   const blankImage = "blank-img.png";
 
-  db.doc(`/users/${newUser.email}`)
+  db.doc(`/users/${newUser.handle}`)
     .get()
     .then(doc => {
       if (doc.exists) {
         //get user data & redirect
         // return res.status(400).json({ handle: "this handle is already taken" });
+        console.log("user found " + newUser.email);
         return res.json(`${newUser.token}`);
-      }
-    })
-    .then(() => {
-      const userCredentials = {
-        handle: newUser.handle,
-        email: newUser.email,
-        createdAt: new Date().toISOString(),
-        // imageUrl: `https://firebasestorage.googleapis.com/v0/b/${
-        //   config.storageBucket
-        // }/o/${blankImage}?alt=media`,
-        imageUrl: newUser.imageUrl,
-        userId: newUser.uid
-      };
-      return db.doc(`/users/${newUser.handle}`).set(userCredentials);
-    })
-    .then(() => {
-      return res.status(201).json({ message: "user created successfully" });
-    })
-    .catch(err => {
-      console.error(err);
-      if (err.code === "auth/email-already-in-use") {
-        return res.status(400).json({ email: "Email is already in use " });
       } else {
-        return res
-          .status(500)
-          .json({ general: "something went wrong  , Please try again " });
+        const userCredentials = {
+          handle: newUser.handle,
+          email: newUser.email,
+          createdAt: new Date().toISOString(),
+          // imageUrl: `https://firebasestorage.googleapis.com/v0/b/${
+          //   config.storageBucket
+          // }/o/${blankImage}?alt=media`,
+          imageUrl: newUser.imageUrl,
+          userId: newUser.uid
+        };
+        return db
+          .doc(`/users/${newUser.handle}`)
+          .set(userCredentials)
+          .then(() => {
+            return res
+              .status(201)
+              .json({ message: "user created successfully" });
+          })
+          .catch(err => {
+            console.error(err);
+            if (err.code === "auth/email-already-in-use") {
+              return res
+                .status(400)
+                .json({ email: "Email is already in use " });
+            } else {
+              return res
+                .status(500)
+                .json({ general: "something went wrong  , Please try again " });
+            }
+          });
       }
     });
+  // .then(() => {
+  //   const userCredentials = {
+  //     handle: newUser.handle,
+  //     email: newUser.email,
+  //     createdAt: new Date().toISOString(),
+  //     // imageUrl: `https://firebasestorage.googleapis.com/v0/b/${
+  //     //   config.storageBucket
+  //     // }/o/${blankImage}?alt=media`,
+  //     imageUrl: newUser.imageUrl,
+  //     userId: newUser.uid
+  //   };
+  //   return db.doc(`/users/${newUser.handle}`).set(userCredentials);
+  // })
+  // .then(() => {
+  //   return res.status(201).json({ message: "user created successfully" });
+  // })
+  // .catch(err => {
+  //   console.error(err);
+  //   if (err.code === "auth/email-already-in-use") {
+  //     return res.status(400).json({ email: "Email is already in use " });
+  //   } else {
+  //     return res
+  //       .status(500)
+  //       .json({ general: "something went wrong  , Please try again " });
+  //   }
+  // });
 };
 
 /**
